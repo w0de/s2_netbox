@@ -12,6 +12,13 @@ class S2Netbox::Commands::Person < S2Netbox::ApiRequest
     send_request('ModifyPerson', person_attributes, session_id)
   end
 
+  def self.remove(person_id, attributes={}, access_levels=[], user_defined_fields=[], session_id=nil)
+    person_attributes = build_attributes(attributes, access_levels, user_defined_fields)
+    person_attributes['PERSONID'] = person_id
+
+    send_request('RemovePerson', person_attributes, session_id)
+  end
+  
   def self.build_attributes(attributes, access_levels, user_defined_fields)
     hash = map_attributes(attributes)
     hash = build_user_defined_fields(hash, user_defined_fields)
