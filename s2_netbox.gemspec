@@ -14,7 +14,9 @@ Gem::Specification.new do |spec|
   spec.homepage      = 'https://github.com/teamsquare/s2_netbox'
   spec.license       = 'MIT'
 
-  spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
+  spec.files         = %w(.document CONTRIBUTING.md LICENSE.md README.md Rakefile s2_netbox.gemspec circle.yaml .rspec)
+  spec.files        += Dir.glob("lib/**/*.rb")
+  #spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   spec.bindir        = 'exe'
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
