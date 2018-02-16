@@ -46,4 +46,18 @@ class S2Netbox::Commands::BaseCommand < S2Netbox::ApiRequest
 
     hash
   end
+
+  def self.paginate(command, request_attributes, response: nil, session_id: nil)
+    pages = 0
+    response = response ? response : send_request(command, request_attributes, session_id)
+    next_key = response.next_key
+    while next_key && next_key != '-1'
+      next_attributes = Marshal.load(Marshal.dump(request_attributes))
+      next_attributes['STARTFROMKEY'] = next_key
+      next_response = send_request(command, next_attributes, session_id)
+      response.add_page(next_response)
+      next_key = next_response.next_key
+    end
+    response
+  end
 end

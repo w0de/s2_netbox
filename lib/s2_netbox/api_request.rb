@@ -2,6 +2,13 @@ require 'facets/string/titlecase'
 
 class S2Netbox::ApiRequest
   include S2Netbox::Helpers
+  attr_accessor :command_name, :attributes, :session_id
+
+  def intialize(command_name, attributes, session_id=nil)
+    @command_name = command_name
+    @attributes = attributes
+    @session_id = session_id
+  end
 
   def self.provides_command(*command_names)
     define_singleton_method(:supported_operations) do
@@ -80,5 +87,9 @@ class S2Netbox::ApiRequest
     return unless attributes
 
     attributes.map { |k, v| [k.to_s.delete('_').upcase, blank?(v) ? '' : v] }.to_h
+  end
+
+  def get_response
+    @response ||= self.class.send_request(@command_name, @attributes, session_id)
   end
 end

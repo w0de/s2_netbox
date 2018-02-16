@@ -1,3 +1,5 @@
+require_relative 'base'
+
 class S2Netbox::Commands::Person < S2Netbox::Commands::BaseCommand
   def self.object_name
     'Person'
@@ -16,8 +18,17 @@ class S2Netbox::Commands::Person < S2Netbox::Commands::BaseCommand
     if person_id
       person_attributes['PERSONID'] = person_id
     end
+    send_request('SearchPersonData', person_attributes, session_id)
+  end
 
-    send_request("SearchPersonData", person_attributes, session_id)
+  def self.all(session_id=nil)
+    # Find with no parameters returns all users
+    response = paginate('SearchPersonData', {}, :session_id => session_id)
+    people = []
+    response.pages.each do |page|
+      people += page.details['PEOPLE']['PERSON']
+    end
+    people
   end
 
 end
