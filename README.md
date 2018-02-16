@@ -7,11 +7,9 @@ This gem provides Ruby bindings to the [S2 NetBox](http://s2sys.com/products/acc
 
 # Currently Supported API methods
 
-This Gem has been written pretty specifically for the needs of Teamsquare's internal management systems.
+Through `S2Netbox::ApiRequest` class to invoke any API command on the S2 controller by hand, however only the specific ones we're using have been built out and tested.
 
-Through `S2Netbox::ApiRequest` class you **should** be able to invoke any API command on the S2 controller by hand, however only the specific ones we're using have been built out and tested.
-
-The specific methods we're using have been documented under the Usage section.  See the section "Other Commands" for details on how to invoke any arbitrary command in addition to the list of "supported" commands below.
+The specific methods implemented Usage section.  See the section "Other Commands" for details on how to invoke any arbitrary command in addition to the list of "supported" commands below.
 
 # Installation
 
@@ -62,13 +60,13 @@ Once sent to the configured S2 controller, the response is wrapped up in an inst
 `details` is a hash of the returned details. For example, when getting a Person object, this will contain the person's attributes, such as `FIRSTNAME` and `LASTNAME` as well as a hash of `ACCESSLEVELS`.  The details hash is keyed off the raw names of the XML attributes in the response (uppercase names, as a string, not symbol) so access them like:
 
 ```ruby
-@result.details['FIRSTNAME']
+result.details['FIRSTNAME']
 ```
 
 not
 
 ```ruby
-@result.details[:first_name]
+result.details[:first_name]
 ```
 `error_message` is populated with the error message returned from the system assuming `code` is not `SUCCESS`.
 
@@ -105,7 +103,7 @@ All sessions must be logged out. According to the S2 documentation:
 To log out, issue the `logout` command:
 
 ```ruby
-@result = S2Netbox::Commands::Authentication.logout('session_id_from_login')
+result = S2Netbox::Commands::Authentication.logout('session_id_from_login')
 ```
 
 # Version
@@ -114,7 +112,7 @@ The `Version` module allows you to query the current API version.  This is reall
 ## GetVersion
 
 ```ruby
-@result = S2Netbox::Commands::ApiVersion.get_version('session_id_from_login')
+result = S2Netbox::Commands::ApiVersion.get_version('session_id_from_login')
 ```
 
 The result object will contain the version (assuming you've successfully logged in):
@@ -128,17 +126,18 @@ The result object will contain the version (assuming you've successfully logged 
 
 The `Person` module allows you to add and modify Person records.
 
-## AddPerson
+Methods accept:
 
-The `add_person` method accepts 3 arguments:
-
+1. Person ID
 1. Hash of person attributes
 1. List of access levels
 1. List of User Defined Fields
 1. (Optional) session_id
 
+## AddPerson
+
 ```ruby
-@result = S2Netbox::Commands::Person.add({
+result = S2Netbox::Commands::Person.add({
     :person_id => '8a806ed6-0246-49d0-b7a7-ab6402da01e3',
     :first_name => 'John',
     :last_name => 'Appleseed',
@@ -148,20 +147,12 @@ The `add_person` method accepts 3 arguments:
 )
 ```
 
-Both access levels and user defined fields can be specified either as a single string or as an array of strings.
+Both accesslevels and user_defined_fields can be specified either as a single string or as an array of strings.
 
 ## ModifyPerson
 
-The `modify_person` method allows you to modify an existing person, and is similar to the `add_person` method, but has an additional argument:
-
-1. Person ID
-1. Hash of person attributes
-1. List of access levels
-1. List of User Defined Fields
-1. (Optional) session_id
-
 ```ruby
-@result = S2Netbox::Commands::Person.modify('8a806ed6-0246-49d0-b7a7-ab6402da01e3', {
+result = S2Netbox::Commands::Person.modify('8a806ed6-0246-49d0-b7a7-ab6402da01e3', {
     :first_name => 'John',
     :last_name => 'Appleseed',
     :exp_date => nil,
@@ -169,7 +160,39 @@ The `modify_person` method allows you to modify an existing person, and is simil
 }, %w(AccessLevel1 AccessLevel2), 'UDF1')
 ```
 
-Access levels and user defined fields are replaced with those values specified in this call, and aren't additive to existing access levels or user defined fields.
+If supplied, this method rewrite accesslevels and user_defined_fields
+
+## SearchPersonData
+
+This method accepts an arbitrary hash of valid s2 fields as search pararms.
+
+The api has no documented pagination limit - 167 records is often but not always the limit.
+
+```ruby
+result = S2Netbox::Commands::Person.find({
+    :first_name => 'John',
+    :last_name => 'Appleseed',
+})
+```
+
+For result sets larger than one page, use the `pagination` helper method.
+
+```ruby
+result = S2Netbox::Commands::Person.find({
+    :first_name => 'John',
+    :last_name => 'Appleseed',
+})
+result
+```
+
+```ruby
+result = S2Netbox::Commands::Person.find({
+    :first_name => 'John',
+    :last_name => 'Appleseed',
+})
+```
+
+
 
 # Credential
 
@@ -181,7 +204,7 @@ The `add` method accepts 2 arguments:
 1. (Optional) session_id
 
 ```ruby
-@result = S2Netbox::Commands::Credential.add({
+result = S2Netbox::Commands::Credential.add({
     :person_id => '8a806ed6-0246-49d0-b7a7-ab6402da01e3',
     :encoded_num => '3113',
     :card_format => '26 bit Wiegand'
@@ -199,7 +222,7 @@ The `modify` method accepts 2 arguments:
 1. (Optional) session_id
 
 ```ruby
-@result = S2Netbox::Commands::Credential.add({
+result = S2Netbox::Commands::Credential.add({
     :encoded_num => '3113',
     :disabled => 1
 })

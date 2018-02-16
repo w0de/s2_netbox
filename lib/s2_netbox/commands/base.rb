@@ -5,8 +5,30 @@ class S2Netbox::Commands::BaseCommand < S2Netbox::ApiRequest
     raise NotImplementedError
   end
 
+  # Actually get useful data out of a response.
+  # For instance, a search for people will nest result array in
+  # ApiResponse.details['PEOPLE']['PERSON']
+  def self.get_data(response)
+    raise NotImplementedError
+  end
+
   def self.add(attributes={}, access_levels=[], user_defined_fields=[], session_id=nil)
     send_request("Add#{object_name}", build_attributes(attributes, access_levels, user_defined_fields), session_id)
+  end
+
+  def self.find(attributes={}, access_levels=[], user_defined_fields=[], session_id=nil, limit=150)
+    person_attributes = build_attributes(attributes, access_levels, user_defined_fields)
+    response = send_request('SearchPersonData', person_attributes, session_id)
+    results = get_data(response)
+    # If we're under the result limit and there's a next_page, keep going
+    if (!limit || results.count < limit) && response.next_key && response.next_key != '-1'
+      attributes['STARTFROMKEY'] = response.next_key
+      results += find(
+        attributes, access_levels, user_defined_fields,
+        :session_id => session_id, :limit => limit-results.count
+      )
+    end
+    results
   end
 
   def self.modify(person_id, attributes={}, access_levels=[], user_defined_fields=[], session_id=nil)
@@ -45,19 +67,5 @@ class S2Netbox::Commands::BaseCommand < S2Netbox::ApiRequest
     end
 
     hash
-  end
-
-  def self.paginate(command, request_attributes, response: nil, session_id: nil)
-    pages = 0
-    response = response ? response : send_request(command, request_attributes, session_id)
-    next_key = response.next_key
-    while next_key && next_key != '-1'
-      next_attributes = Marshal.load(Marshal.dump(request_attributes))
-      next_attributes['STARTFROMKEY'] = next_key
-      next_response = send_request(command, next_attributes, session_id)
-      response.add_page(next_response)
-      next_key = next_response.next_key
-    end
-    response
   end
 end

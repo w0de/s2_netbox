@@ -6,8 +6,8 @@ require 's2_netbox/version'
 Gem::Specification.new do |spec|
   spec.name          = 's2_netbox'
   spec.version       = S2Netbox::VERSION
-  spec.authors       = ['Teamsquare']
-  spec.email         = ['hello@teamsquare.co']
+  spec.authors       = ['Teamsquare', 'w0de']
+  spec.email         = ['harry@sysop.ooo']
 
   spec.summary       = %q{Ruby wrapper for S2 NetBox API.}
   spec.description   = %q{S2 is an enterprise class, feature-rich web-based access control and event monitoring system. This Ruby wrapper makes integrating with the API on NetBox controllers easy. See http://s2sys.com/ for more information.}
